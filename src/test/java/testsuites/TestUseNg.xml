@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="TestUseNg" parallel="tests" thread-count="2" verbose="5">
+	<test name="TestUseNg" preserve-order="true" group-by-instances="true">
+		<parameter name="define" value="学猫叫"></parameter>
+		<classes>
+			<!-- <class name="com.aaron.testcase.Test"> <methods> <include name="testparamters"></include> 
+				<include name="testHttp"></include> <exclude name="testHttp2"></exclude> 
+				</methods> </class> -->
+		</classes>
+	</test>
+</suite>

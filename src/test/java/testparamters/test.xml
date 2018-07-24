@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map>
+	<bean beanName="logincheck">
+		<paramters>
+			<url name="url" value="http://10.5.32.212:8080/reserver/serverWeb/loginCheck"></url>
+			<bodyparam name="userName" value="administrator"></bodyparam>
+			<bodyparam name="password" value="123456"></bodyparam>
+		</paramters>
+		<asserts>
+			<assert name="code" value="200"></assert>
+		</asserts>
+	</bean>
+		<bean beanName="logincheck2">
+		<paramters>
+			<url name="url" value="http://10.5.32.212:8080/reserver/serverWeb/loginCheck"></url>
+			<bodyparam name="userName" value="administrator"></bodyparam>
+			<bodyparam name="password" value="123456"></bodyparam>
+		</paramters>
+		<asserts>
+			<assert name="code" value="200"></assert>
+		</asserts>
+	</bean>
+	<bean beanName="test">
+		<paramters>
+			<url name="url01"
+				value="http://10.5.32.212:8080/reserver/serverWeb/loginCheck01"></url>
+			<url name="url02"
+				value="http://10.5.32.212:8080/reserver/serverWeb/loginCheck02"></url>
+			<headparam name="headparam01" value="headparam01"></headparam>
+			<headparam name="headparam01" value="headparam01"></headparam>
+			<headparam name="headparam02" value="headparam02"></headparam>
+			<pathparam name="pathparam01" value="pathparam01"></pathparam>
+			<pathparam name="pathparam02" value="pathparam02"></pathparam>
+			<bodyparam name="bodyparam01" value="bodyparam01"></bodyparam>
+			<bodyparam name="bodyparam02" value="bodyparam02"></bodyparam>
+		</paramters>
+		<asserts>
+			<assert name="assert01" value="assert01"></assert>
+			<assert name="assert02" value="assert02"></assert>
+		</asserts>
+	</bean>
+	<bean beanName="test01">
+		<paramters>
+			<url name="url01"
+				value="http://10.5.32.212:8080/reserver/serverWeb/loginCheck01"></url>
+			<url name="url02"
+				value="http://10.5.32.212:8080/reserver/serverWeb/loginCheck02"></url>
+			<headparam name="headparam01" value="headparam01"></headparam>
+			<headparam name="headparam02" value="headparam02"></headparam>
+			<pathparam name="pathparam01" value="pathparam01"></pathparam>
+			<pathparam name="pathparam02" value="pathparam02"></pathparam>
+			<bodyparam value="json string"></bodyparam>
+		</paramters>
+		<asserts>
+			<assert name="assert01" value="assert01"></assert>
+			<assert name="assert02" value="assert02"></assert>
+		</asserts>
+	</bean>
+	<bean beanName="testSSH">
+		<paramters>
+			<url name="ip" value="10.5.32.212"></url>
+			<url name="port" value="22"></url>
+			<pathparam name="username" value="root"></pathparam>
+			<pathparam name="password" value="123456"></pathparam>
+			<bodyparam name="makdir" value="/usr/local/testdir" />
+			<bodyparam name="deleteDir" value="/usr/local/testdir" />
+		</paramters>
+		<asserts>
+		</asserts>
+	</bean>
+	<bean beanName="testSocket">
+		<paramters>
+			<url name="ip" value="10.5.233.33"></url>
+			<url name="port" value="6665"></url>
+			<bodyparam
+				value='{"command":"task_progress_request","task_type":"video_task","id":"0xfffffff"}' />
+		</paramters>
+		<asserts>
+		</asserts>
+	</bean>
+	<bean beanName="testWebSocket">
+		<paramters>
+			<url name="url" value="wss://10.5.31.138:8843/wss"></url>
+			<bodyparam name="online"
+				value='{"command":"online","body":{"userToken":"Uz9/HTr9Su9/FUcfpF5BTY1wHaLPkighzBSyoUxyOO4=","clientType":"web","deviceName":"iphone7s"}}' />
+			<bodyparam name="addGroup"
+				value='{"command": "addGroup","body": {"groupId": "99-11-29","userId": "abc","userType": "commom-user","userToken": "Uz9/HTr9Su9/FUcfpF5BTY1wHaLPkighzBSyoUxyOO4="}}' />
+			<bodyparam name="groupChat"
+				value='{"command": "groupChat","body": {"groupId": "99-11-29","message": {"type": "text","content":"群发消息"}}}' />
+		</paramters>
+		<asserts>
+		</asserts>
+	</bean>
+</map>
