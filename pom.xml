@@ -9,14 +9,14 @@
 	<distributionManagement>
 		<repository>
 			<id>releases</id>
-			<url>http://10.5.233.33:8081/nexus/content/repositories/releases</url>
+			<url>http://10.5.233.88:8081/nexus/content/repositories/releases</url>
 		</repository>
 	</distributionManagement>
 
 	<repositories>
 		<repository>
 			<id>releases</id>
-			<url>http://10.5.233.33:8081/nexus/content/repositories/releases</url>
+			<url>http://10.5.233.88:8081/nexus/content/repositories/releases</url>
 		</repository>
 		<repository>
 			<id>alimaven</id>
