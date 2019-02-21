@@ -155,10 +155,9 @@ public class HttpService {
         if (StringUtils.isEmpty(authUserName) || StringUtils.isEmpty(authPassword)) {
             closeableHttpClient = httpClientBuilder.setConnectionManager(connectionManager)
                     .setDefaultCookieSpecRegistry(r).setDefaultRequestConfig(defaultRequestConfig).build();
-        }
-        else {
+        } else {
             BasicCredentialsProvider provider = new BasicCredentialsProvider();
-            provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(authUserName,authPassword));
+            provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(authUserName, authPassword));
             closeableHttpClient = httpClientBuilder.setConnectionManager(connectionManager)
                     .setDefaultCookieSpecRegistry(r).setDefaultRequestConfig(defaultRequestConfig).setDefaultCredentialsProvider(provider).build();
         }
@@ -1305,69 +1304,60 @@ public class HttpService {
 
     public static void main(String[] args) throws IOException {
 
-//		HttpService uploadSegment = new HttpService(false);
-//		File file = new File(
-//				"D:\\测试执行\\testdata\\音视频\\音视频格式文件\\转换前的视频格式\\class_83c18e1afeb9401d9579d6e8ab812615_u_4f2bf5b5b96f4b13859bc93c8d382b09__main_1.flv");
-//		long start = 0L;
-//		long end = 0L;
-//		// long end = -1L;
-//		int buffer_size = 1024 * 1024;
-//		HashMap<String, String> pathMap = new HashMap<String, String>();
-//		pathMap.put("areaCode", "9000");
-//		pathMap.put("originalFileName", file.getName());
-//		HashMap<String, String> headMap = new HashMap<String, String>();
-//		ByteArrayOutputStream bos = new ByteArrayOutputStream(buffer_size);
-//		BufferedInputStream in = null;
-//		try {
-//			in = new BufferedInputStream(new FileInputStream(file));
-//			int buf_size = buffer_size;
-//			byte[] buffer = new byte[buf_size];
-//			int len = 0;
-//			int count = 0;
-//			while (-1 != (len = in.read(buffer, 0, buf_size))) {
-//				start = end;
-//				end += len;
-//				// start = end + 1;
-//				// end += len;
-//				bos.write(buffer, 0, len);
-//				bos.flush();
-//				headMap.put("Range", start + "-" + end);
-//				logger.info("This request's Range is : " + start + "-" + end);
-//				uploadSegment.uploadFileWithSegment(null, "http://10.5.32.212:8080/reserver/dms/uploadFile", pathMap,
-//						bos.toByteArray(), headMap, file, null, true);
-//				bos.reset();
-//				count++;
-//				// Thread.sleep(5000);
-//				if (!uploadSegment.getResponseBody().contains("upload success")) {
-//					break;
-//				}
-//			}
-//			headMap.put("Range", "0-0");
-//			logger.info("This request's Range is : 0-0");
-//			uploadSegment.uploadFileWithSegment(null, "http://10.5.32.212:8080/reserver/dms/uploadFile", pathMap, null,
-//					headMap, file, null, true);
-//			logger.info("total send count : " + count++);
-//
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//			throw e;
-//		} finally {
-//			try {
-//				in.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//			bos.close();
-//		}
-        String host = "https://9a5090de106f4f00a277cb7999e433e0:ia0rkrgdsx1cy73tl5a677ng1912r0a3@con.zhihuiya.com";
-        String path = "/connector/oauth/token";
-        Map headers = new HashMap();
-        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        HttpService uploadSegment = new HttpService(false);
+        File file = new File(
+                "D:\\测试执行\\testdata\\音视频\\音视频格式文件\\转换前的视频格式\\class_83c18e1afeb9401d9579d6e8ab812615_u_4f2bf5b5b96f4b13859bc93c8d382b09__main_1.flv");
+        long start = 0L;
+        long end = 0L;
+        // long end = -1L;
+        int buffer_size = 1024 * 1024;
+        HashMap<String, String> pathMap = new HashMap<String, String>();
+        pathMap.put("areaCode", "9000");
+        pathMap.put("originalFileName", file.getName());
+        HashMap<String, String> headMap = new HashMap<String, String>();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(buffer_size);
+        BufferedInputStream in = null;
+        try {
+            in = new BufferedInputStream(new FileInputStream(file));
+            int buf_size = buffer_size;
+            byte[] buffer = new byte[buf_size];
+            int len = 0;
+            int count = 0;
+            while (-1 != (len = in.read(buffer, 0, buf_size))) {
+                start = end;
+                end += len;
+                // start = end + 1;
+                // end += len;
+                bos.write(buffer, 0, len);
+                bos.flush();
+                headMap.put("Range", start + "-" + end);
+                logger.info("This request's Range is : " + start + "-" + end);
+                uploadSegment.uploadFileWithSegment(null, "http://10.5.32.212:8080/reserver/dms/uploadFile", pathMap,
+                        bos.toByteArray(), headMap, file, null, true);
+                bos.reset();
+                count++;
+                // Thread.sleep(5000);
+                if (!uploadSegment.getResponseBody().contains("upload success")) {
+                    break;
+                }
+            }
+            headMap.put("Range", "0-0");
+            logger.info("This request's Range is : 0-0");
+            uploadSegment.uploadFileWithSegment(null, "http://10.5.32.212:8080/reserver/dms/uploadFile", pathMap, null,
+                    headMap, file, null, true);
+            logger.info("total send count : " + count++);
 
-        Map requestbody = new HashMap();
-        requestbody.put("grant_type", "client_credentials");
-        HttpService httpService = new HttpService();
-        httpService.executePost(host + path, null, requestbody, headers);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            bos.close();
+        }
     }
 
 }
