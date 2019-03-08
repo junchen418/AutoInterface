@@ -138,8 +138,8 @@ public class HttpService {
         builder.setCircularRedirectsAllowed(
                 Boolean.valueOf(ConfigProperties.getInstance().getString("RedirectsEnabled")));
         RequestConfig defaultRequestConfig = builder.setCookieSpec(CookieSpecs.DEFAULT).setExpectContinueEnabled(true)
-                .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
-                .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC)).build();
+                .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC,AuthSchemes.NTLM, AuthSchemes.DIGEST))
+                .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC,AuthSchemes.NTLM, AuthSchemes.DIGEST)).build();
         openSSL();
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", PlainConnectionSocketFactory.INSTANCE).register("https", socketFactory).build();
@@ -1041,7 +1041,7 @@ public class HttpService {
                 request = new HttpPost();
                 break;
         }
-        if (pathEntity == null) {
+        if (pathEntity == null || pathEntity.getContentLength() == 0L) {
             request.setURI(URI.create(httpURL));
         } else {
             if (isUrlEncode) {
