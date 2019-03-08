@@ -2,8 +2,9 @@ package com.aaron.base;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import com.aaron.utils.HttpService;
+
 import com.aaron.assertion.IAssert;
+import com.aaron.service.HttpService;
 
 @SuppressWarnings("unused")
 public class HttpBaseCase {

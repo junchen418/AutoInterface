@@ -1,4 +1,4 @@
-package com.aaron.utils;
+package com.aaron.parser;
 
 import java.io.File;
 import java.util.Collection;
@@ -25,12 +25,9 @@ public class XmlCommon {
 	/**
 	 * 读取xml信息
 	 * 
-	 * @param beanName
-	 *            bean标签的beanName值
-	 * @param tag
-	 *            bean下子标签
-	 * @param document
-	 *            xml文档
+	 * @param beanName bean标签的beanName值
+	 * @param tag      bean下子标签
+	 * @param document xml文档
 	 * @return
 	 */
 	private HashMap<String, String> getXml2Map(String beanName, String tag, Document document) {
@@ -56,12 +53,9 @@ public class XmlCommon {
 	/**
 	 * 读取xml信息
 	 * 
-	 * @param beanName
-	 *            bean标签的beanName值
-	 * @param tag
-	 *            bean下子标签
-	 * @param document
-	 *            xml文档
+	 * @param beanName bean标签的beanName值
+	 * @param tag      bean下子标签
+	 * @param document xml文档
 	 * @return
 	 */
 	private Collection<Map<String, String>> getXml2Collection(String beanName, String tag, Document document) {
@@ -89,12 +83,9 @@ public class XmlCommon {
 	/**
 	 * 读取标签value值
 	 * 
-	 * @param beanName
-	 *            bean标签的beanName值
-	 * @param tag
-	 *            bean下子标签
-	 * @param document
-	 *            xml文档
+	 * @param beanName bean标签的beanName值
+	 * @param tag      bean下子标签
+	 * @param document xml文档
 	 * @return
 	 */
 	private String getTagValue(String beanName, String tag, Document document) {
@@ -126,20 +117,20 @@ public class XmlCommon {
 	 */
 	private Document getDocument(String filename) {
 		File file = new File(fileName);
-		if (!file.exists()) {
-			try {
-				logger.error("文件不存在！");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		SAXReader saxReader = new SAXReader();
 		Document document = null;
 		try {
+			if (!file.exists()) {
+				logger.error(filename + " 文件不存在！");
+			}
+			SAXReader saxReader = new SAXReader();
 			document = saxReader.read(file);
 		} catch (DocumentException e) {
 			logger.error("读取文件异常！");
-			e.printStackTrace();
+			try {
+				throw e;
+			} catch (DocumentException e1) {
+				e1.printStackTrace();
+			}
 		}
 		return document;
 	}
@@ -208,36 +199,11 @@ public class XmlCommon {
 		return dataObject;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
 		String filepath = System.getProperty("user.dir") + "/src/test/java/testparamters/" + "test" + ".xml";
 		XmlCommon xmlUtil = new XmlCommon(filepath);
-		// Object[][] test = xmlUtil.getParameters("addActivity");
-		// for (Object[] testdata : test) {
-		// Map<String, String> pathParamterMap = (Map<String, String>)
-		// testdata[1];
-		// Map<String, String> bodyParamterMap = (Map<String, String>)
-		// testdata[2];
-		// Map<String, String> assertMap = (Map<String, String>) testdata[3];
-		// Map<String, String> urlMap = (Map<String, String>) testdata[0];
-		// System.out.println("-----------------------------");
-		// for (String key : pathParamterMap.keySet()) {
-		// System.out.println(key + ":" + pathParamterMap.get(key));
-		// }
-		// System.out.println("-----------------------------");
-		// for (String key : bodyParamterMap.keySet()) {
-		// System.out.println(key + ":" + bodyParamterMap.get(key));
-		// }
-		// System.out.println("-----------------------------");
-		// for (String key : assertMap.keySet()) {
-		// System.out.println(key + ":" + assertMap.get(key));
-		// }
-		// System.out.println("-----------------------------");
-		// for (String key : urlMap.keySet()) {
-		// System.out.println(key + ":" + urlMap.get(key));
-		// }
-		// System.out.println("-----------------------------");
-		// }
-		Object[][] collection = xmlUtil.getParamOfString("socketTest","socketTest2");
+		Object[][] collection = xmlUtil.getParamOfString("socketTest", "socketTest2");
 		for (int i = 0; i < collection.length; i++) {
 			Object[] item = collection[i];
 			for (Object iitem : item) {

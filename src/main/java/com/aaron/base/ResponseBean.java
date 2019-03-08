@@ -2,25 +2,56 @@ package com.aaron.base;
 
 public class ResponseBean {
 
-	// statusLine信息，如：HTTP/1.1 200 OK
+	/**
+	 * statusLine信息，如：HTTP/1.1 200 OK
+	 */
 	public String status;
-	// 响应码
+	
+	/**
+	 *  响应码
+	 */
 	public String statusCode;
-	// 响应内容类型
+	
+	/**
+	 *  响应内容类型
+	 */
 	public String contentType;
-	// 响应内容
+	
+	/**
+	 *  响应内容
+	 */
 	public String body;
-	// http版本
+	
+	/**
+	 * http协议版本
+	 */
 	public String version;
-	// 响应cookie信息
+	
+	/**
+	 *  响应cookie信息
+	 */
 	public String setCookie;
-	// 响应内容长度
+	
+	/**
+	 * 响应内容长度
+	 */
 	public Long contentLength;
-	// 响应内容Range值
+	
+	/**
+	 *  响应内容Range值
+	 */
 	public String contentRange;
-	// 重定向Location值
+	
+	/**
+	 *  重定向Location值
+	 */
 	public String location;
 
+	
+	/**
+	 * 返回http协议版本号
+	 * @return
+	 */
 	public String getVersion() {
 		return version;
 	}
@@ -29,6 +60,10 @@ public class ResponseBean {
 		this.version = version;
 	}
 
+	/**
+	 * 返回响应状态信息
+	 * @return
+	 */
 	public String getStatus() {
 		return status;
 	}
@@ -37,6 +72,10 @@ public class ResponseBean {
 		this.status = status;
 	}
 
+	/**
+	 * 返回响应码
+	 * @return
+	 */
 	public String getStatusCode() {
 		return statusCode;
 	}
@@ -45,6 +84,10 @@ public class ResponseBean {
 		this.statusCode = statusCode;
 	}
 
+	/**
+	 * 返回ContentType
+	 * @return
+	 */
 	public String getContentType() {
 		return contentType;
 	}
@@ -53,6 +96,10 @@ public class ResponseBean {
 		this.contentType = contentType;
 	}
 
+	/**
+	 * 返回响应文本内容
+	 * @return
+	 */
 	public String getBody() {
 		return body;
 	}
@@ -61,6 +108,10 @@ public class ResponseBean {
 		this.body = body;
 	}
 
+	/**
+	 * 返回cookie
+	 * @return
+	 */
 	public String getSetCookie() {
 		return setCookie;
 	}
@@ -69,6 +120,10 @@ public class ResponseBean {
 		this.setCookie = setCookie;
 	}
 
+	/**
+	 * 返回响应内容长度
+	 * @return
+	 */
 	public long getContentLength() {
 		return contentLength;
 	}
@@ -77,6 +132,10 @@ public class ResponseBean {
 		this.contentLength = contentLength;
 	}
 
+	/**
+	 * 返回range
+	 * @return
+	 */
 	public String getContentRange() {
 		return contentRange;
 	}
@@ -85,6 +144,10 @@ public class ResponseBean {
 		this.contentRange = contentRange;
 	}
 
+	/**
+	 * 返回location
+	 * @return
+	 */
 	public String getLocation() {
 		return location;
 	}

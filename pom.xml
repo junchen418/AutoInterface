@@ -5,7 +5,7 @@
 	<artifactId>autointerface</artifactId>
 	<version>1.1.4</version>
 	<packaging>jar</packaging>
-
+<!--
 	<distributionManagement>
 		<repository>
 			<id>releases</id>
@@ -22,10 +22,7 @@
 			<id>alimaven</id>
 			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
 		</repository>
-		<!-- <repository> <id>osc</id> <url>http://maven.oschina.net/content/groups/public/</url> 
-			</repository> <repository> <id>osc_thirdparty</id> <url>http://maven.oschina.net/content/repositories/thirdparty/</url> 
-			</repository> -->
-	</repositories>
+	</repositories>-->
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -53,6 +50,12 @@
 			<artifactId>assertj-core</artifactId>
 			<!-- use 2.6.0 for Java 7 projects -->
 			<version>3.6.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -111,12 +114,12 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.44</version>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>ojdbc6</artifactId>
 			<version>11.2.0.2.0</version>
 		</dependency>
-		<!-- <dependency> <groupId>com.oracle</groupId> <artifactId>ojdbc14</artifactId> 
+		 <dependency> <groupId>com.oracle</groupId> <artifactId>ojdbc14</artifactId>
 			<version>10.2.0.4.0</version> <scope>provided</scope> </dependency> -->
 		<!-- <dependency> <groupId>com.zf</groupId> <artifactId>zson</artifactId> 
 			<version>1.0</version> </dependency> <dependency> <groupId>org.json</groupId> 
@@ -131,12 +134,42 @@
 			<artifactId>async-http-client</artifactId>
 			<version>2.0.29</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.11.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>2.4.0</version>
+		</dependency>
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 			<version>0.1.54</version>
 		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.52</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.8.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.skyscreamer</groupId>
+			<artifactId>jsonassert</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<!-- <sourceDirectory>src</sourceDirectory> <resources> <resource> <directory>src</directory> 

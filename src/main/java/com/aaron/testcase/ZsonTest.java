@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 
+import com.aaron.service.HttpService;
 import org.apache.http.HttpResponse;
 
 import com.aaron.encrypt.Base64Util;
-import com.aaron.utils.HttpService;
 import com.jcraft.jsch.HASH;
 import com.zf.zson.ZSON;
 import com.zf.zson.result.ZsonResult;
@@ -52,7 +52,7 @@ public class ZsonTest {
 		}
 		HttpService uploadSegment = new HttpService(false);
 		bodyMap.put("base64Code", Base64Util.encode(bos.toByteArray()));
-		uploadSegment.executePost("http://10.5.32.212:8080/reserver/file/image/base64/upload", bodyMap);
+		uploadSegment.post("http://10.5.32.212:8080/reserver/file/image/base64/upload", bodyMap);
 		
 	}
 }

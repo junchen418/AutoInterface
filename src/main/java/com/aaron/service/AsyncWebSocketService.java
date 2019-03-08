@@ -1,4 +1,4 @@
-package com.aaron.utils;
+package com.aaron.service;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -167,27 +167,7 @@ public class AsyncWebSocketService {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		// AsyncWebSocketService service = new
-		// AsyncWebSocketService("ws://10.5.31.138:1981/ws");
 		AsyncWebSocketService service2 = new AsyncWebSocketService("wss://10.5.31.138:8843/wss");
-
-		// service.sendMessage(
-		// "{\"command\":\"online\",\"body\":{\"userToken\":\"2222334sddssdsd=\",\"clientType\":\"web\",\"deviceName\":\"iphone7s\"}}");
-		// service.sendMessage(
-		// "{\"command\": \"addGroup\",\"body\":
-		// {\"groupId\":\"99-11-23\",\"userId\":
-		// \"abc\",\"userType\":\"commom-user\",\"userToken\":
-		// \"2222334sddssdsd\"}}");
-		// service.sendMessage(
-		// "{\"command\": \"broadcastMessage\",\"body\": {\"groupId\":
-		// \"99-11-23\",\"message\": {\"groupId\":\"service 99-11-23\"}}}");
-		// service.disconnect();
-		// String teString = service.getAllResult();
-		// System.out.println(service.getReceiveCount());
-		// System.out.println(teString);
-		// System.out.println(teString.split("\n").length);
-//		service2.sendMessage(
-//				"{\"command\":\"online\",\"body\":{\"userToken\":\"Uz9/HTr9Su9/FUcfpF5BTY1wHaLPkighzBSyoUxyOO4=\",\"clientType\":\"web\",\"deviceName\":\"iphone7s\"}}");
 		service2.sendMessage(
 				"{\"command\": \"addGroup\",\"body\": {\"groupId\": \"99-11-29\",\"userId\": \"abc\",\"userType\": \"commom-user\",\"userToken\": \"Uz9/HTr9Su9/FUcfpF5BTY1wHaLPkighzBSyoUxyOO4=\"}}");
 		service2.sendMessage(

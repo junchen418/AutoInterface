@@ -52,10 +52,8 @@ public class RSAUtil {
 	/**
 	 * 使用模和指数生成RSA公钥 默认补位方式为RSA/None/PKCS1Padding /None/NoPadding】
 	 * 
-	 * @param modulus
-	 *            模
-	 * @param exponent
-	 *            指数
+	 * @param modulus  模
+	 * @param exponent 指数
 	 * @return RSA公钥
 	 */
 	public static RSAPublicKey getPublicKey(String modulus, String exponent) {
@@ -74,10 +72,8 @@ public class RSAUtil {
 	/**
 	 * 使用模和指数生成RSA私钥 默认补位方式为RSA/None/PKCS1Padding /None/NoPadding】
 	 * 
-	 * @param modulus
-	 *            模
-	 * @param exponent
-	 *            指数
+	 * @param modulus  模
+	 * @param exponent 指数
 	 * @return RSA私钥
 	 */
 	public static RSAPrivateKey getPrivateKey(String modulus, String exponent) {
@@ -93,6 +89,13 @@ public class RSAUtil {
 		}
 	}
 
+	/**
+	 * 通过公钥字符串获取RSAPublicKey对象
+	 * 
+	 * @param publicKeyStr
+	 * @return
+	 * @throws Exception
+	 */
 	public static RSAPublicKey getPublicKey(String publicKeyStr) throws Exception {
 		try {
 			byte[] buffer = Base64Util.decode(publicKeyStr);
@@ -110,6 +113,13 @@ public class RSAUtil {
 		}
 	}
 
+	/**
+	 * 通过私钥字符串获取RSAPrivateKey对象
+	 * 
+	 * @param privateKeyStr
+	 * @return
+	 * @throws Exception
+	 */
 	public static RSAPrivateKey getPrivateKey(String privateKeyStr) throws Exception {
 		try {
 			byte[] buffer = Base64Util.decode(privateKeyStr);
@@ -127,6 +137,13 @@ public class RSAUtil {
 		}
 	}
 
+	/**
+	 * 返回PublicKey实例
+	 * 
+	 * @param in
+	 * @return
+	 * @throws Exception
+	 */
 	public static PublicKey getPublicKey(InputStream in) throws Exception {
 		try {
 			return getPublicKey(readKey(in));
@@ -137,6 +154,13 @@ public class RSAUtil {
 		}
 	}
 
+	/**
+	 * 返回PrivateKey实例
+	 * 
+	 * @param in
+	 * @return
+	 * @throws Exception
+	 */
 	public static PrivateKey getPrivateKey(InputStream in) throws Exception {
 		try {
 			return getPrivateKey(readKey(in));
@@ -147,6 +171,13 @@ public class RSAUtil {
 		}
 	}
 
+	/**
+	 * 返回字符串
+	 * 
+	 * @param in
+	 * @return
+	 * @throws IOException
+	 */
 	private static String readKey(InputStream in) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		String readLine = null;
@@ -162,6 +193,13 @@ public class RSAUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * Key对象的字符串
+	 * 
+	 * @param key
+	 * @return
+	 * @throws Exception
+	 */
 	public static String getKeyString(Key key) throws Exception {
 		byte[] keyBytes = key.getEncoded();
 		String string = Base64Util.encode(keyBytes);

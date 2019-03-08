@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import org.apache.commons.codec.binary.Hex;
 
 public class SHAUtil {
+	
 	public static byte[] SHA(String source) {
 		byte src[] = source.getBytes();
 		byte target[] = SHA(src);

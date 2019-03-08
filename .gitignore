@@ -1,0 +1,16 @@
+*.jpg
+.idea/
+.idea/workspace.xml
+logs/
+target/
+*.iml
+*.class
+.DS_Store
+test33.java
+*.xls
+.settings/
+.settings/*
+.classpath
+.project
+test-output/
+*.log

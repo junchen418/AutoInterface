@@ -10,8 +10,7 @@ import com.aaron.base.HttpBaseCase;
 import com.aaron.db.DbUnit;
 import com.aaron.encrypt.Base64Util;
 import com.aaron.encrypt.MD5Util;
-import com.aaron.utils.HttpService;
-import com.aaron.utils.SocketClientService;
+import com.aaron.service.HttpService;
 import com.zf.zson.ZSON;
 import com.zf.zson.result.ZsonResult;
 
@@ -49,7 +48,7 @@ public class TestLogin extends HttpBaseCase {
 		map.put("grant_type", "client_credentials");
 		
 
-		class_create.executePost(url, map);
+		class_create.post(url, map);
 
 	}
 

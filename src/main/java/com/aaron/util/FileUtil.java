@@ -1,4 +1,4 @@
-package com.aaron.utils;
+package com.aaron.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -12,27 +12,30 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.log4j.Logger;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 /**
  * 文件工具类
  * 
  * @author shenbing
  */
-public class FileUtils {
-	private static final Logger log = Logger.getLogger(FileUtils.class);
+public class FileUtil {
+	private static final Logger log = Logger.getLogger(FileUtil.class);
 
 	/**
 	 * 创建目录
 	 * 
-	 * @param dir
-	 *            目录
+	 * @param dir 目录
 	 */
 	public static void mkdir(String dir) {
 		try {
@@ -50,10 +53,8 @@ public class FileUtils {
 	/**
 	 * 新建文件
 	 * 
-	 * @param fileName
-	 *            String 包含路径的文件名 如:E:\phsftp\src\123.txt
-	 * @param content
-	 *            String 文件内容
+	 * @param fileName String 包含路径的文件名 如:E:\phsftp\src\123.txt
+	 * @param content  String 文件内容
 	 * 
 	 */
 	public static void createNewFile(String fileName, String content) {
@@ -80,13 +81,12 @@ public class FileUtils {
 	/**
 	 * 删除文件
 	 * 
-	 * @param fileName
-	 *            包含路径的文件名
+	 * @param fileName 包含路径的文件名
 	 */
 	public static void delFile(String fileName) {
 		try {
 			String filePath = fileName;
-			java.io.File delFile = new java.io.File(filePath);
+			File delFile = new File(filePath);
 			delFile.delete();
 		} catch (Exception e) {
 			log.error("删除文件操作出错: " + e.getMessage());
@@ -97,15 +97,14 @@ public class FileUtils {
 	/**
 	 * 删除文件夹
 	 * 
-	 * @param folderPath
-	 *            文件夹路径
+	 * @param folderPath 文件夹路径
 	 */
 	public static void delFolder(String folderPath) {
 		try {
 			// 删除文件夹里面所有内容
 			delAllFile(folderPath);
 			String filePath = folderPath;
-			java.io.File myFilePath = new java.io.File(filePath);
+			File myFilePath = new File(filePath);
 			// 删除空文件夹
 			myFilePath.delete();
 		} catch (Exception e) {
@@ -117,8 +116,7 @@ public class FileUtils {
 	/**
 	 * 删除文件夹里面的所有文件
 	 * 
-	 * @param path
-	 *            文件夹路径
+	 * @param path 文件夹路径
 	 */
 	public static void delAllFile(String path) {
 		File file = new File(path);
@@ -151,10 +149,8 @@ public class FileUtils {
 	/**
 	 * 复制单个文件
 	 * 
-	 * @param srcFile
-	 *            包含路径的源文件 如：E:/phsftp/src/abc.txt
-	 * @param dirDest
-	 *            目标文件目录；若文件目录不存在则自动创建 如：E:/phsftp/dest
+	 * @param srcFile 包含路径的源文件 如：E:/phsftp/src/abc.txt
+	 * @param dirDest 目标文件目录；若文件目录不存在则自动创建 如：E:/phsftp/dest
 	 */
 	public static void copyFile(String srcFile, String dirDest) {
 		try {
@@ -178,10 +174,8 @@ public class FileUtils {
 	/**
 	 * 复制文件夹
 	 * 
-	 * @param oldPath
-	 *            String 源文件夹路径 如：E:/phsftp/src
-	 * @param newPath
-	 *            String 目标文件夹路径 如：E:/phsftp/dest
+	 * @param oldPath String 源文件夹路径 如：E:/phsftp/src
+	 * @param newPath String 目标文件夹路径 如：E:/phsftp/dest
 	 */
 	public static void copyFolder(String oldPath, String newPath) {
 		try {
@@ -222,10 +216,8 @@ public class FileUtils {
 	/**
 	 * 移动文件到指定目录
 	 * 
-	 * @param oldPath
-	 *            包含路径的文件名 如：E:/phsftp/src/ljq.txt
-	 * @param newPath
-	 *            目标文件目录 如：E:/phsftp/dest
+	 * @param oldPath 包含路径的文件名 如：E:/phsftp/src/ljq.txt
+	 * @param newPath 目标文件目录 如：E:/phsftp/dest
 	 */
 	public static void moveFile(String oldPath, String newPath) {
 		copyFile(oldPath, newPath);
@@ -235,10 +227,8 @@ public class FileUtils {
 	/**
 	 * 移动文件到指定目录，不会删除文件夹
 	 * 
-	 * @param oldPath
-	 *            源文件目录 如：E:/phsftp/src
-	 * @param newPath
-	 *            目标文件目录 如：E:/phsftp/dest
+	 * @param oldPath 源文件目录 如：E:/phsftp/src
+	 * @param newPath 目标文件目录 如：E:/phsftp/dest
 	 */
 	public static void moveFiles(String oldPath, String newPath) {
 		copyFolder(oldPath, newPath);
@@ -248,10 +238,8 @@ public class FileUtils {
 	/**
 	 * 移动文件到指定目录，会删除文件夹
 	 * 
-	 * @param oldPath
-	 *            源文件目录 如：E:/phsftp/src
-	 * @param newPath
-	 *            目标文件目录 如：E:/phsftp/dest
+	 * @param oldPath 源文件目录 如：E:/phsftp/src
+	 * @param newPath 目标文件目录 如：E:/phsftp/dest
 	 */
 	public static void moveFolder(String oldPath, String newPath) {
 		copyFolder(oldPath, newPath);
@@ -261,10 +249,8 @@ public class FileUtils {
 	/**
 	 * 解压zip文件
 	 * 
-	 * @param srcFile
-	 *            压缩文件
-	 * @param destDir
-	 *            解压文件存放目录
+	 * @param srcFile 压缩文件
+	 * @param destDir 解压文件存放目录
 	 * @throws Exception
 	 */
 	public static void unZip(String srcFile, String destDir) throws Exception {
@@ -310,10 +296,8 @@ public class FileUtils {
 	/**
 	 * 压缩文件
 	 * 
-	 * @param srcDir
-	 *            压缩前存放的目录
-	 * @param targetName
-	 *            压缩后的文件名
+	 * @param srcDir     压缩前存放的目录
+	 * @param targetName 压缩后的文件名
 	 * @throws Exception
 	 * @return 文件对象
 	 */
@@ -351,10 +335,8 @@ public class FileUtils {
 	/**
 	 * 扫描添加文件Entry
 	 * 
-	 * @param source
-	 *            源文件
-	 * @param zos
-	 *            Zip文件输出流
+	 * @param source 源文件
+	 * @param zos    Zip文件输出流
 	 * @throws IOException
 	 */
 	private static void addEntry(File source, ZipOutputStream zos) throws IOException {
@@ -413,13 +395,13 @@ public class FileUtils {
 	/**
 	 * 一行一行读取文件，适合字符读取，若读取中文字符时会出现乱码
 	 * 
-	 * @param path
+	 * @param fileName
 	 * @return
 	 * @throws Exception
 	 */
-	public static Set<String> readFile(String path) throws Exception {
+	public static Set<String> readFile(String fileName) throws Exception {
 		Set<String> datas = new HashSet<String>();
-		FileReader fr = new FileReader(path);
+		FileReader fr = new FileReader(fileName);
 		BufferedReader br = new BufferedReader(fr);
 		String line = null;
 		while ((line = br.readLine()) != null) {
@@ -429,4 +411,22 @@ public class FileUtils {
 		fr.close();
 		return datas;
 	}
+
+	/**
+	 * 返回文件内容数据
+	 * 
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 * @throws Exception
+	 */
+	public static String readToString(String fileName) throws IOException {
+		URL in = FileUtil.class.getClassLoader().getResource(fileName);
+		File file = new File(in.getPath());
+		List<String> lines = Files.readLines(file, Charsets.UTF_8);
+		StringBuilder sb = new StringBuilder();
+		lines.forEach(line -> sb.append(line));
+		return sb.toString();
+	}
+
 }

@@ -13,6 +13,12 @@ import javax.net.ssl.X509ExtendedTrustManager;
 
 public class NaiveSSLContext {
 
+	/**
+	 * SSLContext对象用于取消https的客户端验证
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 * @throws KeyManagementException
+	 */
 	public static SSLContext createIgnoreVerifySSL() throws NoSuchAlgorithmException, KeyManagementException {
 
 		SSLContext sc = SSLContext.getInstance("TLS");
@@ -21,48 +27,35 @@ public class NaiveSSLContext {
 
 			@Override
 			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public X509Certificate[] getAcceptedIssuers() {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket)
 					throws CertificateException {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
 					throws CertificateException {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket)
 					throws CertificateException {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
 					throws CertificateException {
-				// TODO Auto-generated method stub
-
 			}
 
 		};

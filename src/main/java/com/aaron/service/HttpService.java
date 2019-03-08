@@ -1,9 +1,6 @@
-package com.aaron.utils;
+package com.aaron.service;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +22,6 @@ import javax.net.ssl.SSLException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import com.alibaba.druid.util.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -33,8 +29,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
@@ -65,12 +59,11 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
@@ -80,15 +73,15 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
-
 import com.aaron.base.ConfigProperties;
-import com.aaron.base.FormatUtils;
 import com.aaron.base.NaiveSSLContext;
 import com.aaron.base.ResponseBean;
+import com.aaron.util.UUIDUtil;
 import com.zf.zson.ZSON;
 import com.zf.zson.result.ZsonResult;
 
 public class HttpService {
+
     private static Logger logger = LoggerFactory.getLogger(HttpService.class);
     private final String DEFAULT_CHARSET = "UTF-8";
     private final int DEFAULT_SOCKET_TIMEOUT = 5000;
@@ -96,48 +89,57 @@ public class HttpService {
     private SSLConnectionSocketFactory socketFactory;
     private String cookies;
     private ResponseBean responseBean;
-    private boolean isUrlEncode;
+    private boolean isUrlEncode = false;
     private CloseableHttpClient closeableHttpClient;
-    private String authUserName;
-    private String authPassword;
 
+    /**
+     * 构造方法
+     */
     public HttpService() {
         this.cookies = "";
         this.responseBean = new ResponseBean();
-        this.isUrlEncode = Boolean.valueOf(ConfigProperties.getInstance().getString("urlEncode"));
     }
 
+    /**
+     * 构造方法
+     *
+     * @param isUrlEncode 指定是否对url进行url编码
+     */
     public HttpService(boolean isUrlEncode) {
         this.cookies = "";
         this.responseBean = new ResponseBean();
         this.isUrlEncode = isUrlEncode;
     }
 
-    public HttpService(boolean isUrlEncode, String authUserName, String authPassword) {
-        this.cookies = "";
-        this.responseBean = new ResponseBean();
-        this.isUrlEncode = isUrlEncode;
-        this.authUserName = authUserName;
-        this.authPassword = authPassword;
-    }
-
-    public CloseableHttpClient createHttpClient() {
+    /**
+     * 创建CloseableHttpClient实例
+     *
+     * @return
+     */
+    private CloseableHttpClient createHttpClient() {
         return createHttpClient(DEFAULT_RETRY_TIMES, DEFAULT_SOCKET_TIMEOUT);
     }
 
-    public CloseableHttpClient createHttpClient(int socketTimeout) {
-        return createHttpClient(DEFAULT_RETRY_TIMES, socketTimeout);
-    }
-
-    public CloseableHttpClient createHttpClient(int retryTimes, int socketTimeout) {
+    /**
+     * 创建CloseableHttpClient实例
+     *
+     * @param retryTimes    重试次数
+     * @param socketTimeout 超时时间
+     * @return
+     */
+    private CloseableHttpClient createHttpClient(int retryTimes, int socketTimeout) {
         Builder builder = RequestConfig.custom();
         builder.setConnectTimeout(DEFAULT_SOCKET_TIMEOUT);
         builder.setConnectionRequestTimeout(DEFAULT_SOCKET_TIMEOUT);
         builder.setSocketTimeout(socketTimeout);
         builder.setRedirectsEnabled(Boolean.valueOf(ConfigProperties.getInstance().getString("RedirectsEnabled")));
+        builder.setRelativeRedirectsAllowed(
+                Boolean.valueOf(ConfigProperties.getInstance().getString("RedirectsEnabled")));
+        builder.setCircularRedirectsAllowed(
+                Boolean.valueOf(ConfigProperties.getInstance().getString("RedirectsEnabled")));
         RequestConfig defaultRequestConfig = builder.setCookieSpec(CookieSpecs.DEFAULT).setExpectContinueEnabled(true)
-                .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC, AuthSchemes.NTLM, AuthSchemes.DIGEST))
-                .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC, AuthSchemes.NTLM, AuthSchemes.DIGEST)).setAuthenticationEnabled(true).build();
+                .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
+                .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC)).build();
         openSSL();
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", PlainConnectionSocketFactory.INSTANCE).register("https", socketFactory).build();
@@ -150,18 +152,14 @@ public class HttpService {
         }
         PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
         Registry<CookieSpecProvider> r = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider(publicSuffixMatcher))
-                .register(CookieSpecs.STANDARD, new RFC6265CookieSpecProvider(publicSuffixMatcher)).build();
-        if (StringUtils.isEmpty(authUserName) || StringUtils.isEmpty(authPassword)) {
-            closeableHttpClient = httpClientBuilder.setConnectionManager(connectionManager)
-                    .setDefaultCookieSpecRegistry(r).setDefaultRequestConfig(defaultRequestConfig).build();
-        } else {
-            BasicCredentialsProvider provider = new BasicCredentialsProvider();
-            provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(authUserName, authPassword));
-            closeableHttpClient = httpClientBuilder.setConnectionManager(connectionManager)
-                    .setDefaultCookieSpecRegistry(r).setDefaultRequestConfig(defaultRequestConfig).setDefaultCredentialsProvider(provider).build();
-        }
-        return closeableHttpClient;
+//				.register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider(publicSuffixMatcher))
+                .register(CookieSpecs.DEFAULT, new RFC6265CookieSpecProvider(publicSuffixMatcher)).build();
+        CloseableHttpClient httpClient = httpClientBuilder.setConnectionManager(connectionManager)
+                .setDefaultCookieSpecRegistry(r).setDefaultRequestConfig(defaultRequestConfig)
+                .setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:49.0) Gecko/20100101 Firefox/49.0")
+                .setRedirectStrategy(new LaxRedirectStrategy()).build();
+        closeableHttpClient = httpClient;
+        return httpClient;
     }
 
     /**
@@ -176,10 +174,10 @@ public class HttpService {
      * @param charset           请求编码，默认UTF8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executeGet(CloseableHttpClient httpClient, String url, Object pathParamObj, String reffer,
-                           String contentType, String cookie, String charset, boolean isCloseHttpClient) {
+    public void get(CloseableHttpClient httpClient, String url, Object pathParamObj, String reffer, String contentType,
+                    String cookie, String charset, boolean isCloseHttpClient) {
         Map<String, String> headerMap = buildHeadsMap(cookie, reffer, contentType);
-        executeGet(httpClient, url, pathParamObj, headerMap, charset, isCloseHttpClient);
+        get(httpClient, url, pathParamObj, headerMap, charset, isCloseHttpClient);
     }
 
     /**
@@ -192,8 +190,8 @@ public class HttpService {
      * @param charset           请求编码，默认UTF8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executeGet(CloseableHttpClient httpClient, String url, Object pathParamObj,
-                           Map<String, String> headerMap, String charset, boolean isCloseHttpClient) {
+    public void get(CloseableHttpClient httpClient, String url, Object pathParamObj, Map<String, String> headerMap,
+                    String charset, boolean isCloseHttpClient) {
         CloseableHttpResponse httpResponse = null;
         charset = charset == null ? DEFAULT_CHARSET : charset;
         try {
@@ -203,13 +201,16 @@ public class HttpService {
             }
             HttpGet get = (HttpGet) initialRequestPath("GET", url, pathEntity, charset);
             handleRequestHeads(get, headerMap);
+            long begin = System.currentTimeMillis();
             httpResponse = httpClient.execute(get);
+            long end = System.currentTimeMillis();
             logInfo(get, httpResponse);
             String tmpCookies = getCookies(httpResponse, charset);
             handleCookies(tmpCookies);
-            setResponseBean(httpResponse, charset);
+            setResponseBean(httpResponse, charset, end - begin);
         } catch (IOException e) {
             logger.error("Request failed!");
+            logger.error(e.getMessage());
         } finally {
             if (httpResponse != null) {
                 try {
@@ -233,8 +234,8 @@ public class HttpService {
      * @param pathParamObj 提交的参数信息，目前支持Map,和String(JSON\xml)
      * @param headerMap    header头信息
      */
-    public void executeGet(String url, Object pathParamObj, Map<String, String> headerMap) {
-        executeGet(null, url, pathParamObj, headerMap, null, true);
+    public void get(String url, Object pathParamObj, Map<String, String> headerMap) {
+        get(null, url, pathParamObj, headerMap, null, true);
     }
 
     /**
@@ -244,8 +245,8 @@ public class HttpService {
      * @param pathParamObj 提交的参数信息，目前支持Map,和String(JSON\xml)
      * @param cookie       cookies信息，可传null
      */
-    public void executeGet(String url, Object pathParamObj, String cookie) {
-        executeGet(null, url, pathParamObj, null, null, cookie, null, true);
+    public void get(String url, Object pathParamObj, String cookie) {
+        get(null, url, pathParamObj, null, null, cookie, null, true);
     }
 
     /**
@@ -254,8 +255,8 @@ public class HttpService {
      * @param url          请求的远程地址
      * @param pathParamObj 提交的参数信息，目前支持Map,和String(JSON\xml)
      */
-    public void executeGet(String url, Object pathParamObj) {
-        executeGet(null, url, pathParamObj, null, null, this.cookies, null, true);
+    public void get(String url, Object pathParamObj) {
+        get(null, url, pathParamObj, null, null, this.cookies, null, true);
     }
 
     /**
@@ -271,10 +272,10 @@ public class HttpService {
      * @param charset           请求编码，默认UTF8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executePost(CloseableHttpClient httpClient, String url, Object pathParamObj, Object bodyParamObj,
-                            String reffer, String contentType, String cookie, String charset, boolean isCloseHttpClient) {
+    public void post(CloseableHttpClient httpClient, String url, Object pathParamObj, Object bodyParamObj,
+                     String reffer, String contentType, String cookie, String charset, boolean isCloseHttpClient) {
         Map<String, String> headerMap = buildHeadsMap(cookie, reffer, contentType);
-        executePost(httpClient, url, pathParamObj, bodyParamObj, headerMap, charset, isCloseHttpClient);
+        post(httpClient, url, pathParamObj, bodyParamObj, headerMap, charset, isCloseHttpClient);
     }
 
     /**
@@ -288,8 +289,8 @@ public class HttpService {
      * @param charset           请求编码，默认UTF8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executePost(CloseableHttpClient httpClient, String url, Object pathParamObj, Object bodyParamObj,
-                            Map<String, String> headerMap, String charset, boolean isCloseHttpClient) {
+    public void post(CloseableHttpClient httpClient, String url, Object pathParamObj, Object bodyParamObj,
+                     Map<String, String> headerMap, String charset, boolean isCloseHttpClient) {
         CloseableHttpResponse httpResponse = null;
         charset = charset == null ? DEFAULT_CHARSET : charset;
         try {
@@ -303,11 +304,13 @@ public class HttpService {
             if (bodyEntity != null) {
                 post.setEntity(bodyEntity);
             }
+            long begin = System.currentTimeMillis();
             httpResponse = httpClient.execute(post);
+            long end = System.currentTimeMillis();
             logInfo(post, httpResponse);
             String tmpCookies = getCookies(httpResponse, charset);
             handleCookies(tmpCookies);
-            setResponseBean(httpResponse, charset);
+            setResponseBean(httpResponse, charset, end - begin);
         } catch (IOException e) {
             logger.error("Request failed!");
         } finally {
@@ -333,8 +336,8 @@ public class HttpService {
      * @param bodyParamObj 提交的body参数信息，目前支持Map,和String(JSON\xml)
      * @param headerMap    header头信息
      */
-    public void executePost(String url, Object pathParamObj, Object bodyParamObj, Map<String, String> headerMap) {
-        executePost(null, url, pathParamObj, bodyParamObj, headerMap, null, true);
+    public void post(String url, Object pathParamObj, Object bodyParamObj, Map<String, String> headerMap) {
+        post(null, url, pathParamObj, bodyParamObj, headerMap, null, true);
     }
 
     /**
@@ -343,8 +346,8 @@ public class HttpService {
      * @param url          请求的远程地址
      * @param bodyParamObj 提交的body参数信息，目前支持Map,和String(JSON\xml)
      */
-    public void executePost(String url, Object bodyParamObj) {
-        executePost(null, url, null, bodyParamObj, null, null, this.cookies, null, true);
+    public void post(String url, Object bodyParamObj) {
+        post(null, url, null, bodyParamObj, null, null, this.cookies, null, true);
     }
 
     /**
@@ -354,8 +357,8 @@ public class HttpService {
      * @param pathParamObj 提交的path参数信息，目前支持Map,和String(JSON\xml)
      * @param bodyParamObj 提交的body参数信息，目前支持Map,和String(JSON\xml)
      */
-    public void executePost(String url, Object pathParamObj, Object bodyParamObj) {
-        executePost(null, url, pathParamObj, bodyParamObj, null, null, this.cookies, null, true);
+    public void post(String url, Object pathParamObj, Object bodyParamObj) {
+        post(null, url, pathParamObj, bodyParamObj, null, null, this.cookies, null, true);
     }
 
     /**
@@ -370,8 +373,8 @@ public class HttpService {
      * @param charset           请求编码，默认UTF-8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executePut(CloseableHttpClient httpClient, String url, Object pathParamObj, Object bodyParamObj,
-                           String reffer, String cookie, String charset, boolean isCloseHttpClient) {
+    public void put(CloseableHttpClient httpClient, String url, Object pathParamObj, Object bodyParamObj, String reffer,
+                    String cookie, String charset, boolean isCloseHttpClient) {
         CloseableHttpResponse httpResponse = null;
         charset = charset == null ? DEFAULT_CHARSET : charset;
         try {
@@ -385,11 +388,13 @@ public class HttpService {
             if (bodyEntity != null) {
                 put.setEntity(bodyEntity);
             }
+            long begin = System.currentTimeMillis();
             httpResponse = httpClient.execute(put);
+            long end = System.currentTimeMillis();
             logInfo(put, httpResponse);
             String tmpCookies = getCookies(httpResponse, charset);
             handleCookies(tmpCookies);
-            setResponseBean(httpResponse, charset);
+            setResponseBean(httpResponse, charset, end - begin);
         } catch (IOException e) {
             logger.error(e.getMessage());
         } finally {
@@ -415,8 +420,8 @@ public class HttpService {
      * @param pathParamObj url路径参数
      * @param bodyParamObj 请求body信息
      */
-    public void executePut(String url, Object pathParamObj, Object bodyParamObj) {
-        executePut(null, url, pathParamObj, bodyParamObj, null, this.cookies, null, true);
+    public void put(String url, Object pathParamObj, Object bodyParamObj) {
+        put(null, url, pathParamObj, bodyParamObj, null, this.cookies, null, true);
     }
 
     /**
@@ -430,8 +435,8 @@ public class HttpService {
      * @param charset           请求编码，默认UTF-8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executeDelete(CloseableHttpClient httpClient, String url, Object pathParamObj, String reffer,
-                              String cookie, String charset, boolean isCloseHttpClient) {
+    public void delete(CloseableHttpClient httpClient, String url, Object pathParamObj, String reffer, String cookie,
+                       String charset, boolean isCloseHttpClient) {
         CloseableHttpResponse httpResponse = null;
         charset = charset == null ? DEFAULT_CHARSET : charset;
         try {
@@ -441,11 +446,13 @@ public class HttpService {
             HttpEntity pathEntity = getEntity(pathParamObj, charset);
             HttpDelete delete = (HttpDelete) initialRequestPath("DELETE", url, pathEntity, charset);
             handleRequestHeads(delete, cookie, reffer, null);
+            long begin = System.currentTimeMillis();
             httpResponse = httpClient.execute(delete);
+            long end = System.currentTimeMillis();
             logInfo(delete, httpResponse);
             String tmpCookies = getCookies(httpResponse, charset);
             handleCookies(tmpCookies);
-            setResponseBean(httpResponse, charset);
+            setResponseBean(httpResponse, charset, end - begin);
         } catch (IOException e) {
             logger.error(e.getMessage());
         } finally {
@@ -471,8 +478,8 @@ public class HttpService {
      * @param pathParamObj url路径参数
      * @param cookie       请求头cookie信息
      */
-    public void executeDelete(String url, Object pathParamObj, String cookie) {
-        executeDelete(null, url, pathParamObj, null, cookie, null, true);
+    public void delete(String url, Object pathParamObj, String cookie) {
+        delete(null, url, pathParamObj, null, cookie, null, true);
     }
 
     /**
@@ -481,8 +488,8 @@ public class HttpService {
      * @param url          请求url
      * @param pathParamObj url路径参数
      */
-    public void executeDelete(String url, Object pathParamObj) {
-        executeDelete(null, url, pathParamObj, null, this.cookies, null, true);
+    public void delete(String url, Object pathParamObj) {
+        delete(null, url, pathParamObj, null, this.cookies, null, true);
     }
 
     /**
@@ -495,8 +502,8 @@ public class HttpService {
      * @param charset           请求编码，默认UTF-8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executeUploadFile(CloseableHttpClient httpClient, String remoteFileUrl, Object pathParamObj,
-                                  String localFilePath, String cookie, String charset, boolean isCloseHttpClient) {
+    public void uploadFile(CloseableHttpClient httpClient, String remoteFileUrl, Object pathParamObj,
+                           String localFilePath, String cookie, String charset, boolean isCloseHttpClient) {
         CloseableHttpResponse httpResponse = null;
         try {
             if (httpClient == null) {
@@ -518,11 +525,13 @@ public class HttpService {
                 httpPost.setEntity(reqEntity);
             }
             handleRequestHeads(httpPost, cookie, null, null);
+            long begin = System.currentTimeMillis();
             httpResponse = httpClient.execute(httpPost);
+            long end = System.currentTimeMillis();
             logInfo(httpPost, httpResponse);
             String tmpCookies = getCookies(httpResponse, charset);
             handleCookies(tmpCookies);
-            setResponseBean(httpResponse, charset);
+            setResponseBean(httpResponse, charset, end - begin);
         } catch (IOException e) {
             logger.error("Upload File failed!");
         } finally {
@@ -552,8 +561,8 @@ public class HttpService {
      * @param charset           请求编码，默认UTF-8
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      */
-    public void executeUploadFile(CloseableHttpClient httpClient, String remoteFileUrl, Object pathParamObj,
-                                  Map<String, String> headerMap, String localFilePath, String charset, boolean isCloseHttpClient) {
+    public void uploadFile(CloseableHttpClient httpClient, String remoteFileUrl, Object pathParamObj,
+                           Map<String, String> headerMap, String localFilePath, String charset, boolean isCloseHttpClient) {
         CloseableHttpResponse httpResponse = null;
         try {
             if (httpClient == null) {
@@ -575,11 +584,13 @@ public class HttpService {
                 httpPost.setEntity(reqEntity);
             }
             handleRequestHeads(httpPost, headerMap);
+            long begin = System.currentTimeMillis();
             httpResponse = httpClient.execute(httpPost);
+            long end = System.currentTimeMillis();
             logInfo(httpPost, httpResponse);
             String tmpCookies = getCookies(httpResponse, charset);
             handleCookies(tmpCookies);
-            setResponseBean(httpResponse, charset);
+            setResponseBean(httpResponse, charset, end - begin);
         } catch (IOException e) {
             logger.error("Upload File failed!");
         } finally {
@@ -605,8 +616,8 @@ public class HttpService {
      * @param pathParamObj  url路径参数
      * @param localFilePath 本地文件地址
      */
-    public void executeUploadFile(String remoteFileUrl, Object pathParamObj, String localFilePath) {
-        executeUploadFile(null, remoteFileUrl, pathParamObj, localFilePath, cookies, null, true);
+    public void uploadFile(String remoteFileUrl, Object pathParamObj, String localFilePath) {
+        uploadFile(null, remoteFileUrl, pathParamObj, localFilePath, cookies, null, true);
     }
 
     /**
@@ -615,8 +626,8 @@ public class HttpService {
      * @param remoteFileUrl 远程接收文件的地址
      * @param localFilePath 本地文件地址
      */
-    public void executeUploadFile(String remoteFileUrl, String localFilePath) {
-        executeUploadFile(null, remoteFileUrl, null, localFilePath, cookies, null, true);
+    public void uploadFile(String remoteFileUrl, String localFilePath) {
+        uploadFile(null, remoteFileUrl, null, localFilePath, cookies, null, true);
     }
 
     /**
@@ -626,9 +637,9 @@ public class HttpService {
      * @param pathParamObj  路径参数
      * @param headMap       请求信息系头信息
      */
-    public void executeUploadFile(String remoteFileUrl, Object pathParamObj, HashMap<String, String> headMap,
-                                  String localFilePath) {
-        executeUploadFile(null, remoteFileUrl, pathParamObj, headMap, localFilePath, null, true);
+    public void uploadFile(String remoteFileUrl, Object pathParamObj, HashMap<String, String> headMap,
+                           String localFilePath) {
+        uploadFile(null, remoteFileUrl, pathParamObj, headMap, localFilePath, null, true);
     }
 
     /**
@@ -641,8 +652,8 @@ public class HttpService {
      * @param isCloseHttpClient 执行请求结束后是否关闭HttpClient客户端实例
      * @return 返回Boolean结果
      */
-    public boolean executeDownloadFile(CloseableHttpClient httpClient, String remoteFileUrl, Object pathParamObj,
-                                       String localFilePath, String cookie, String charset, boolean isCloseHttpClient) {
+    public boolean downloadFile(CloseableHttpClient httpClient, String remoteFileUrl, Object pathParamObj,
+                                String localFilePath, String cookie, String charset, boolean isCloseHttpClient) {
         CloseableHttpResponse response = null;
         InputStream in = null;
         FileOutputStream fout = null;
@@ -699,13 +710,28 @@ public class HttpService {
         }
     }
 
-    public boolean executeDownloadFile(String remoteFileUrl, String localFilePath) {
-        return executeDownloadFile(null, remoteFileUrl, null, localFilePath, cookies, null, true);
+    /**
+     * 下载文件到本地
+     *
+     * @param remoteFileUrl url
+     * @param localFilePath 本地文件路径
+     * @return
+     */
+    public boolean downloadFile(String remoteFileUrl, String localFilePath) {
+        return downloadFile(null, remoteFileUrl, null, localFilePath, cookies, null, true);
     }
 
-    public boolean executeDownloadFile(String remoteFileUrl, Object pathParamObj, String localFilePath)
-            throws IOException {
-        return executeDownloadFile(null, remoteFileUrl, pathParamObj, localFilePath, cookies, null, true);
+    /**
+     * 下载文件到本地
+     *
+     * @param remoteFileUrl url
+     * @param pathParamObj  路径参数
+     * @param localFilePath 本地文件路径
+     * @return
+     * @throws IOException
+     */
+    public boolean downloadFile(String remoteFileUrl, Object pathParamObj, String localFilePath) throws IOException {
+        return downloadFile(null, remoteFileUrl, pathParamObj, localFilePath, cookies, null, true);
     }
 
     /**
@@ -739,9 +765,11 @@ public class HttpService {
                         .setCharset(CharsetUtils.get(charset)).build();
                 httpPost.setEntity(reqEntity);
             }
+            long begin = System.currentTimeMillis();
             httpResponse = httpClient.execute(httpPost);
+            long end = System.currentTimeMillis();
             logInfo(httpPost, httpResponse);
-            setResponseBean(httpResponse, DEFAULT_CHARSET);
+            setResponseBean(httpResponse, DEFAULT_CHARSET, end - begin);
         } catch (IOException e) {
             logger.error(e.getMessage());
             e.printStackTrace();
@@ -808,7 +836,9 @@ public class HttpService {
             }
             HttpGet get = (HttpGet) initialRequestPath("GET", remoteFileUrl, pathEntity, charset);
             handleRequestHeads(get, headerMap);
+            long begin = System.currentTimeMillis();
             response = httpClient.execute(get);
+            long end = System.currentTimeMillis();
             logInfo(get, response);
             String name;
             Header header = response.getFirstHeader("Content-Disposition");
@@ -824,10 +854,10 @@ public class HttpService {
                 if (name != null && !"".equals(name)) {
                     fileName = localFileDir + File.separatorChar + name;
                 } else {
-                    fileName = localFileDir + File.separatorChar + UUIDUtils.getUUID();
+                    fileName = localFileDir + File.separatorChar + UUIDUtil.getUUID();
                 }
             } else {
-                fileName = localFileDir + File.separatorChar + UUIDUtils.getUUID();
+                fileName = localFileDir + File.separatorChar + UUIDUtil.getUUID();
             }
             if (contentType == null || "".equals(contentType.getValue())
                     || contentType.getValue().contains("application/x-www-form-urlencoded")
@@ -835,7 +865,7 @@ public class HttpService {
                     || contentType.getValue().contains("text/plain") || contentType.getValue().contains("text/xml")
                     || contentType.getValue().contains("text/html")
                     || contentType.getValue().contains("application/json")) {
-                setResponseBean(response, charset);
+                setResponseBean(response, charset, end - begin);
             } else {
                 HttpEntity entity = response.getEntity();
                 if (entity == null || -1L == entity.getContentLength()) {
@@ -979,6 +1009,17 @@ public class HttpService {
         return this.isUrlEncode;
     }
 
+    /**
+     * 初始化请求url
+     *
+     * @param methodName 请求类型
+     * @param url        url
+     * @param pathEntity 参数实体
+     * @param charset    编码
+     * @return
+     * @throws ParseException
+     * @throws IOException
+     */
     private HttpRequestBase initialRequestPath(String methodName, String url, HttpEntity pathEntity, String charset)
             throws ParseException, IOException {
         String httpURL = handleURL(url);
@@ -1013,6 +1054,12 @@ public class HttpService {
         return request;
     }
 
+    /**
+     * 返回完整url
+     *
+     * @param url 相对或绝对路径url
+     * @return
+     */
     private String handleURL(String url) {
         if (!url.startsWith("http") && !url.startsWith("https")) {
             String baseURL = ConfigProperties.getInstance().getString("baseURL");
@@ -1074,7 +1121,14 @@ public class HttpService {
         return null;
     }
 
-    private void setResponseBean(CloseableHttpResponse httpResponse, String charset) {
+    /**
+     * response处理
+     *
+     * @param httpResponse CloseableHttpResponse实例
+     * @param charset      编码
+     * @param duration     请求耗时
+     */
+    private void setResponseBean(CloseableHttpResponse httpResponse, String charset, long duration) {
         try {
             if (httpResponse != null) {
                 String responseBoyd = getResult(httpResponse, charset);
@@ -1093,7 +1147,11 @@ public class HttpService {
                 this.responseBean.setContentRange((contentRange != null) ? contentRange.getValue() : null);
                 Header location = httpResponse.getFirstHeader("Location");
                 this.responseBean.setLocation((location != null) ? location.getValue() : null);
-                logger.info(FormatUtils.formatJson(responseBoyd));
+//				logger.info(FormatUtils.formatJson(responseBoyd));
+                logger.info(responseBoyd);
+                logger.info("#####################################Elapsed time#####################################");
+                logger.info(String.valueOf(duration));
+                logger.info("#####################################End#####################################\n\n");
             }
         } catch (ParseException e) {
             logger.error(e.getMessage());
@@ -1125,6 +1183,15 @@ public class HttpService {
         return result;
     }
 
+    /**
+     * 返回响应中的Set-Cookie值
+     *
+     * @param httpResponse CloseableHttpResponse实例
+     * @param charset      编码
+     * @return
+     * @throws ParseException
+     * @throws IOException
+     */
     private String getCookies(CloseableHttpResponse httpResponse, String charset) throws ParseException, IOException {
         Header[] headers = httpResponse.getHeaders("Set-Cookie");
         if (headers.length > 0) {
@@ -1138,12 +1205,17 @@ public class HttpService {
                 if (cookies.startsWith(";")) {
                     cookies = cookies.substring(1);
                 }
-                return cookies;
             }
         }
-        return "";
+        return cookies;
     }
 
+    /**
+     * 参数转换
+     *
+     * @param paramsMap 参数
+     * @return
+     */
     private List<NameValuePair> getNameValuePairs(Map<String, String> paramsMap) {
         List<NameValuePair> list = new ArrayList<>();
         if (paramsMap == null || paramsMap.isEmpty()) {
@@ -1155,6 +1227,12 @@ public class HttpService {
         return list;
     }
 
+    /**
+     * 参数转换
+     *
+     * @param paramsCollection 参数
+     * @return
+     */
     private List<NameValuePair> getNameValuePairs(Collection<Map<String, String>> paramsCollection) {
         List<NameValuePair> list = new ArrayList<>();
         for (Iterator<Map<String, String>> miterator = paramsCollection.iterator(); miterator.hasNext(); ) {
@@ -1169,6 +1247,9 @@ public class HttpService {
         return list;
     }
 
+    /**
+     * 开启SSL
+     */
     private void openSSL() {
         try {
             socketFactory = new SSLConnectionSocketFactory(NaiveSSLContext.createIgnoreVerifySSL(),
@@ -1178,6 +1259,14 @@ public class HttpService {
         }
     }
 
+    /**
+     * 组织Head头信息到Map
+     *
+     * @param cookie      cookie字符串
+     * @param reffer      reffer字符串
+     * @param contentType contentType字符串
+     * @return
+     */
     private Map<String, String> buildHeadsMap(String cookie, String reffer, String contentType) {
         Map<String, String> headerMap = new HashMap<>();
         if (cookie != null && !"".equals(cookie)) {
@@ -1192,6 +1281,14 @@ public class HttpService {
         return headerMap;
     }
 
+    /**
+     * 处理请求头信息
+     *
+     * @param request     HttpRequestBase实例
+     * @param cookie      cookie字符串
+     * @param reffer      reffer字符串
+     * @param contentType contentType字符串
+     */
     private void handleRequestHeads(HttpRequestBase request, String cookie, String reffer, String contentType) {
         Map<String, String> headerMap = new HashMap<>();
         if (cookie != null && !"".equals(cookie)) {
@@ -1206,6 +1303,12 @@ public class HttpService {
         handleRequestHeads(request, headerMap);
     }
 
+    /**
+     * 处理请求头信息
+     *
+     * @param request   HttpRequestBase实例
+     * @param headerMap header信息
+     */
     private void handleRequestHeads(HttpRequestBase request, Map<String, String> headerMap) {
         if (headerMap == null) {
             return;
@@ -1224,6 +1327,11 @@ public class HttpService {
         request.setHeaders(headers);
     }
 
+    /**
+     * 处理Cookie
+     *
+     * @param cookie
+     */
     private void handleCookies(String cookie) {
         if (cookie != null && !"".equals(cookie)) {
             if (!cookies.contains(cookie)) {
@@ -1235,6 +1343,12 @@ public class HttpService {
         }
     }
 
+    /**
+     * 设置支持重试
+     *
+     * @param httpClientBuilder HttpClientBuilder实例
+     * @param retryTimes        重试次数
+     */
     private void setRetryHandler(HttpClientBuilder httpClientBuilder, final int retryTimes) {
         HttpRequestRetryHandler retryHandler = new HttpRequestRetryHandler() {
             public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
@@ -1265,6 +1379,12 @@ public class HttpService {
         httpClientBuilder.setRetryHandler(retryHandler);
     }
 
+    /**
+     * 输出日志
+     *
+     * @param request      HttpRequestBase实例
+     * @param httpResponse CloseableHttpResponse实例
+     */
     private void logInfo(HttpRequestBase request, CloseableHttpResponse httpResponse) {
         logger.info("#####################################Start#####################################");
         logger.info("Request URL : " + request.getRequestLine().getUri());
@@ -1279,9 +1399,28 @@ public class HttpService {
         } else {
             logger.info("Cookie : " + cookieString.substring(0, cookieString.length() - 1));
         }
-        logger.info("######################################End######################################\n");
+        StringBuilder sb = new StringBuilder();
+        Arrays.stream(httpResponse.getHeaders("Set-Cookie"))
+                .forEach(header -> sb.append(header.getName() + ":" + header.getValue() + ";"));
+        logger.info("Set-Cookie : " + sb.toString());
+        if (request instanceof HttpPost) {
+            logger.info("######################################Request Body######################################");
+            try {
+                logger.info(URLDecoder.decode(EntityUtils.toString(((HttpPost) request).getEntity(), DEFAULT_CHARSET),
+                        DEFAULT_CHARSET));
+            } catch (ParseException | IOException e) {
+                e.printStackTrace();
+            }
+        }
+        logger.info("######################################Response Body######################################");
     }
 
+    /**
+     * 检查json格式
+     *
+     * @param json json字符串
+     * @return
+     */
     private boolean checkJson(String json) {
         try {
             ZSON.parseJson(json);
@@ -1291,6 +1430,12 @@ public class HttpService {
         return true;
     }
 
+    /**
+     * 检查xml格式
+     *
+     * @param xmlString xml字符串
+     * @return
+     */
     private static boolean checkXML(String xmlString) {
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -1301,63 +1446,4 @@ public class HttpService {
         }
         return true;
     }
-
-    public static void main(String[] args) throws IOException {
-
-        HttpService uploadSegment = new HttpService(false);
-        File file = new File(
-                "D:\\测试执行\\testdata\\音视频\\音视频格式文件\\转换前的视频格式\\class_83c18e1afeb9401d9579d6e8ab812615_u_4f2bf5b5b96f4b13859bc93c8d382b09__main_1.flv");
-        long start = 0L;
-        long end = 0L;
-        // long end = -1L;
-        int buffer_size = 1024 * 1024;
-        HashMap<String, String> pathMap = new HashMap<String, String>();
-        pathMap.put("areaCode", "9000");
-        pathMap.put("originalFileName", file.getName());
-        HashMap<String, String> headMap = new HashMap<String, String>();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(buffer_size);
-        BufferedInputStream in = null;
-        try {
-            in = new BufferedInputStream(new FileInputStream(file));
-            int buf_size = buffer_size;
-            byte[] buffer = new byte[buf_size];
-            int len = 0;
-            int count = 0;
-            while (-1 != (len = in.read(buffer, 0, buf_size))) {
-                start = end;
-                end += len;
-                // start = end + 1;
-                // end += len;
-                bos.write(buffer, 0, len);
-                bos.flush();
-                headMap.put("Range", start + "-" + end);
-                logger.info("This request's Range is : " + start + "-" + end);
-                uploadSegment.uploadFileWithSegment(null, "http://10.5.32.212:8080/reserver/dms/uploadFile", pathMap,
-                        bos.toByteArray(), headMap, file, null, true);
-                bos.reset();
-                count++;
-                // Thread.sleep(5000);
-                if (!uploadSegment.getResponseBody().contains("upload success")) {
-                    break;
-                }
-            }
-            headMap.put("Range", "0-0");
-            logger.info("This request's Range is : 0-0");
-            uploadSegment.uploadFileWithSegment(null, "http://10.5.32.212:8080/reserver/dms/uploadFile", pathMap, null,
-                    headMap, file, null, true);
-            logger.info("total send count : " + count++);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            bos.close();
-        }
-    }
-
 }

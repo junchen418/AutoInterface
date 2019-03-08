@@ -45,8 +45,6 @@ public class ConfigProperties {
 	 *            文件名
 	 */
 	private void loadFile(String properties) {
-		// String filePath = System.getProperty("user.dir") +
-		// "/src/main/resources/" + properties;
 		InputStream in = ConfigProperties.class.getClassLoader().getResourceAsStream(properties);
 		InputStreamReader ir = null;
 		LineNumberReader input = null;
@@ -89,16 +87,23 @@ public class ConfigProperties {
 		map.put(value[0].trim(), value[1].trim());
 
 	}
-
+	
+	/**
+	 * 根据key值获取properties文件的value值
+	 * @param key
+	 * @return
+	 */
 	public String getString(String key) {
 		return map.get(key);
 	}
 
+	/**
+	 * 根据key值获取properties文件的value值
+	 * @param key
+	 * @return int类型
+	 */
 	public int getInt(String key) {
 		return Integer.valueOf(map.get(key));
 	}
 
-	public static void main(String[] args) {
-		System.out.println(ConfigProperties.getInstance().getString("urlEncode"));
-	}
 }

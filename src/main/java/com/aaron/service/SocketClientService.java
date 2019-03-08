@@ -1,4 +1,4 @@
-package com.aaron.utils;
+package com.aaron.service;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,16 +15,30 @@ public class SocketClientService {
 	private final String DEFAULT_CHARSET = "UTF-8";
 	private String address = null;
 	private int port = 0;
-	private int delaytime = 5000;
+	private int timeout = 5000;
 	private char end = '\0';
 
-	public SocketClientService(String address, int port, int delaytime, char end) {
+	/**
+	 * 构造方法
+	 * 
+	 * @param address 服务器ip
+	 * @param port    服务器port
+	 * @param timeout 指定超时时间，单位毫秒
+	 * @param end     消息结束标志
+	 */
+	public SocketClientService(String address, int port, int timeout, char end) {
 		this.address = address;
 		this.port = port;
-		this.delaytime = delaytime;
+		this.timeout = timeout;
 		this.end = end;
 	}
 
+	/**
+	 * 构造方法
+	 * 
+	 * @param address 服务器ip
+	 * @param port    服务器port
+	 */
 	public SocketClientService(String address, int port) {
 		this.address = address;
 		this.port = port;
@@ -33,8 +47,7 @@ public class SocketClientService {
 	/**
 	 * 发送消息
 	 * 
-	 * @param message
-	 *            消息内容
+	 * @param message 消息内容
 	 * @return 返回接收到的消息
 	 */
 	public String sendMessage(String message) {
@@ -47,14 +60,14 @@ public class SocketClientService {
 			socket = channel.socket();
 			// socket.setReuseAddress(true);
 			// socket.setSoLinger(true, 0);
-			socket.setSoTimeout(delaytime);
+			socket.setSoTimeout(timeout);
 			byte[] messageBytes = (message + end).getBytes(DEFAULT_CHARSET);
 			ByteBuffer messageBuffer = ByteBuffer.wrap(messageBytes);
 			channel.write(messageBuffer);
 			channel.register(selector, SelectionKey.OP_READ);
 			ByteBuffer receiveBuffer = ByteBuffer.allocate(1024);
 			while (true) {
-				if (selector.select(delaytime) == 0) {
+				if (selector.select(timeout) == 0) {
 					result = new String(receiveBuffer.array(), DEFAULT_CHARSET);
 					break;
 				}
@@ -112,8 +125,6 @@ public class SocketClientService {
 	}
 
 	public static void main(String[] args) {
-//		String message = "{\"command\":\"video_message_result\",\"id\":\"4c67b7e6e22f44b1b809666c566acb6d_videomessage\",\"duration\":\"10000\",\"resolution\":\"1024*768\",\"framerate\":8,\"audiocode\":\"aac\",\"videocode\":\"h264\",\"bitrate\":128,\"audiotrack\":\"Stero\",\"videotype\":\"2d\",\"status\":true, \"code\":0}";
-//		SocketClientService clientService = new SocketClientService("10.5.32.212", 11999);
 		String message = "{\"command\":\"task_progress_request\",\"task_type\":\"video_task\",\"id\":\"0xfffffff\"}";
 		SocketClientService clientService = new SocketClientService("10.5.233.33", 6665);
 		String result = clientService.sendMessage(message);

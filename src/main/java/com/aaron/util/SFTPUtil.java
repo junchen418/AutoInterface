@@ -1,4 +1,4 @@
-package com.aaron.utils;
+package com.aaron.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,10 +21,10 @@ import com.jcraft.jsch.UserInfo;
 /**
  * SSH Utils
  * 
- * @author shenbing
+ * @author Aaron
  *
  */
-public class SFTPUtils {
+public class SFTPUtil {
 	Logger logger = Logger.getLogger(this.getClass());
 	private String host = "";
 	private String user = "";
@@ -52,10 +52,10 @@ public class SFTPUtils {
 		this.user = user;
 	}
 
-	public SFTPUtils() {
+	public SFTPUtil() {
 	}
 
-	public SFTPUtils(String host, int port, String user, String password) {
+	public SFTPUtil(String host, int port, String user, String password) {
 		this.host = host;
 		this.user = user;
 		this.password = password;
@@ -67,7 +67,7 @@ public class SFTPUtils {
 	 * 
 	 * @throws JSchException
 	 */
-	public SFTPUtils connect() throws JSchException {
+	public SFTPUtil connect() throws JSchException {
 		if (session == null) {
 			session = jsch.getSession(user, host, port);
 			UserInfo ui = new UserInfo() {
