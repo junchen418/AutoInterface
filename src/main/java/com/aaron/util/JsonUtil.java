@@ -65,13 +65,13 @@ public class JsonUtil {
 		Collections.sort(fields);
 		sb.append("{");
 		for (int i = 0; i < fields.size(); i++) {
-			sb.append("\"" + fields.get(i).replaceAll("\\\"", "\\\\\"") + "\"");
+			sb.append("\"" + fields.get(i).replace("\"", "\\\"") + "\"");
 			sb.append(":");
 			if (tmp.get(fields.get(i)) instanceof String) {
 				if (isJsonObject(tmp.getString(fields.get(i))) || isJsonArray(tmp.getString(fields.get(i)))) {
 					sb.append(tmp.get(fields.get(i)));
 				} else {
-					sb.append("\"" + ((String) tmp.get(fields.get(i))).replaceAll("\\\"", "\\\\\"") + "\"");
+					sb.append("\"" + ((String) tmp.get(fields.get(i))).replace("\"", "\\\"") + "\"");
 				}
 			} else {
 				sb.append(tmp.get(fields.get(i)));
@@ -259,7 +259,7 @@ public class JsonUtil {
 				+ "    \"status\": true\r\n" + "},{\"\\\"test\":[\"te\\\"st\"]}]";
 //		System.out.println(pre);
 //		System.out.println("-----------------");
-		System.out.println(getSortedJson(pre));
+		System.out.println(getFormatedJson(getSortedJson(pre)));
 		System.out.println("-----------------");
 		System.out.println(getRootKeys(pre));
 	}
