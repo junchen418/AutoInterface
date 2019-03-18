@@ -65,18 +65,17 @@ public class JsonUtil {
 		Collections.sort(fields);
 		sb.append("{");
 		for (int i = 0; i < fields.size(); i++) {
-			sb.append("\"" + fields.get(i) + "\"");
+			sb.append("\"" + fields.get(i).replaceAll("\\\"", "\\\\\"") + "\"");
 			sb.append(":");
 			if (tmp.get(fields.get(i)) instanceof String) {
 				if (isJsonObject(tmp.getString(fields.get(i))) || isJsonArray(tmp.getString(fields.get(i)))) {
 					sb.append(tmp.get(fields.get(i)));
 				} else {
-					sb.append("\"" + tmp.get(fields.get(i)) + "\"");
+					sb.append("\"" + ((String) tmp.get(fields.get(i))).replaceAll("\\\"", "\\\\\"") + "\"");
 				}
 			} else {
 				sb.append(tmp.get(fields.get(i)));
 			}
-
 			if (i < fields.size() - 1) {
 				sb.append(",");
 			}
@@ -250,17 +249,17 @@ public class JsonUtil {
 				+ "      \"link\": null,\r\n" + "      \"fileWrapperStatus\": 2,\r\n" + "	  \"list\": [\r\n"
 				+ "        {\r\n" + "          \"mailRoomDate\": \"2008-01-02\",\r\n"
 				+ "          \"documentCode\": \"ISSUE.NTF\",\r\n"
-				+ "          \"documentDescription\": \"Issue Notification\",\r\n"
+				+ "          \"document\\\"Description\": \"Issue \\\"Notifica\\\"tion\",\r\n"
 				+ "          \"documentCategory\": \"PROSECUTION\",\r\n" + "          \"pageCount\": 1,\r\n"
 				+ "          \"pdfLink\": \"pdfLink\"\r\n" + "        },\r\n" + "        {\r\n"
 				+ "          \"mailRoomDate\": \"2007-11-23\",\r\n" + "          \"documentCode\": \"IFEE\",\r\n"
 				+ "          \"documentDescription\": \"Issue Fee Payment (PTO-85B)\",\r\n"
 				+ "          \"documentCategory\": \"PROSECUTION\",\r\n" + "          \"pageCount\": 1,\r\n"
 				+ "          \"pdfLink\": \"pdfLink02\"\r\n" + "        }]\r\n" + "    },\r\n"
-				+ "    \"status\": true\r\n" + "}]";
-		System.out.println(pre);
-		System.out.println("-----------------");
-		System.out.println(getFormatedJson((getSortedJson(pre))));
+				+ "    \"status\": true\r\n" + "},{\"\\\"test\":[\"te\\\"st\"]}]";
+//		System.out.println(pre);
+//		System.out.println("-----------------");
+		System.out.println(getSortedJson(pre));
 		System.out.println("-----------------");
 		System.out.println(getRootKeys(pre));
 	}
